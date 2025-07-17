@@ -1,121 +1,32 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>PredictShot Web</title>
-  <style>
-    canvas { background: white; display: block; margin: auto; border: 1px solid #000; }
-    body { text-align: center; font-family: sans-serif; }
-  </style>
+  <meta charset="utf-8" />
+  <title>Bullet Hell Mathlab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>PredictShot</h1>
-  <p>Use arrow keys to move. Survive!</p>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const WIDTH = canvas.width;
-    const HEIGHT = canvas.height;
+  <div id="ui-root">
+    <h1>Bullet Hell Mathlab</h1>
+    <div id="menu" class="panel">
+      <p>Select Mode:</p>
+      <button id="btn-easy" class="menu-btn">Easy (E)</button>
+      <button id="btn-hard" class="menu-btn">Hard (H)</button>
+      <button id="btn-hc" class="menu-btn">Hardcore (X)</button>
+      <p class="hint">Move: WASD or Arrow Keys. Dodge curve lasers + edge shots.</p>
+    </div>
 
-    const player = {
-      x: WIDTH / 2,
-      y: HEIGHT / 2,
-      radius: 15,
-      speed: 4,
-    };
+    <div id="gameover" class="panel hidden">
+      <h2>Game Over</h2>
+      <p id="final-score">Score: 0.0s</p>
+      <p id="best-score">Best: 0.0s</p>
+      <button id="btn-return" class="menu-btn">Return to Menu</button>
+    </div>
+  </div>
 
-    let keys = {};
-    document.addEventListener("keydown", (e) => keys[e.key] = true);
-    document.addEventListener("keyup", (e) => keys[e.key] = false);
+  <canvas id="game" width="800" height="600"></canvas>
 
-    function updatePlayer() {
-      if (keys["ArrowLeft"]) player.x -= player.speed;
-      if (keys["ArrowRight"]) player.x += player.speed;
-      if (keys["ArrowUp"]) player.y -= player.speed;
-      if (keys["ArrowDown"]) player.y += player.speed;
-
-      player.x = Math.max(player.radius, Math.min(WIDTH - player.radius, player.x));
-      player.y = Math.max(player.radius, Math.min(HEIGHT - player.radius, player.y));
-    }
-
-    class Bullet {
-      constructor(x, y, dx, dy) {
-        this.x = x;
-        this.y = y;
-        const len = Math.hypot(dx, dy);
-        this.dx = dx / len * 3;
-        this.dy = dy / len * 3;
-        this.radius = 6;
-      }
-
-      update() {
-        this.x += this.dx;
-        this.y += this.dy;
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.fillStyle = "red";
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      offScreen() {
-        return this.x < -50 || this.x > WIDTH + 50 || this.y < -50 || this.y > HEIGHT + 50;
-      }
-    }
-
-    const bullets = [];
-    let lastSpawn = 0;
-
-    function spawnBullets() {
-      const now = performance.now();
-      if (now - lastSpawn > 800) {
-        lastSpawn = now;
-        const edges = ["top", "bottom", "left", "right"];
-        const edge = edges[Math.floor(Math.random() * edges.length)];
-        let x, y;
-        if (edge === "top") {
-          x = Math.random() * WIDTH;
-          y = 0;
-        } else if (edge === "bottom") {
-          x = Math.random() * WIDTH;
-          y = HEIGHT;
-        } else if (edge === "left") {
-          x = 0;
-          y = Math.random() * HEIGHT;
-        } else {
-          x = WIDTH;
-          y = Math.random() * HEIGHT;
-        }
-        bullets.push(new Bullet(x, y, player.x - x, player.y - y));
-      }
-    }
-
-    function updateGame() {
-      updatePlayer();
-      spawnBullets();
-      bullets.forEach(b => b.update());
-    }
-
-    function drawGame() {
-      ctx.clearRect(0, 0, WIDTH, HEIGHT);
-      ctx.beginPath();
-      ctx.fillStyle = "blue";
-      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-      ctx.fill();
-      bullets.forEach(b => b.draw());
-    }
-
-    function gameLoop() {
-      updateGame();
-      drawGame();
-      requestAnimationFrame(gameLoop);
-    }
-
-    requestAnimationFrame(gameLoop);
-  </script>
+  <script src="game.js"></script>
 </body>
 </html>
