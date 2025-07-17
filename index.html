@@ -1,1 +1,121 @@
-<html><body>Hello</body></html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PredictShot Web</title>
+  <style>
+    canvas { background: white; display: block; margin: auto; border: 1px solid #000; }
+    body { text-align: center; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+  <h1>PredictShot</h1>
+  <p>Use arrow keys to move. Survive!</p>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    const player = {
+      x: WIDTH / 2,
+      y: HEIGHT / 2,
+      radius: 15,
+      speed: 4,
+    };
+
+    let keys = {};
+    document.addEventListener("keydown", (e) => keys[e.key] = true);
+    document.addEventListener("keyup", (e) => keys[e.key] = false);
+
+    function updatePlayer() {
+      if (keys["ArrowLeft"]) player.x -= player.speed;
+      if (keys["ArrowRight"]) player.x += player.speed;
+      if (keys["ArrowUp"]) player.y -= player.speed;
+      if (keys["ArrowDown"]) player.y += player.speed;
+
+      player.x = Math.max(player.radius, Math.min(WIDTH - player.radius, player.x));
+      player.y = Math.max(player.radius, Math.min(HEIGHT - player.radius, player.y));
+    }
+
+    class Bullet {
+      constructor(x, y, dx, dy) {
+        this.x = x;
+        this.y = y;
+        const len = Math.hypot(dx, dy);
+        this.dx = dx / len * 3;
+        this.dy = dy / len * 3;
+        this.radius = 6;
+      }
+
+      update() {
+        this.x += this.dx;
+        this.y += this.dy;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.fillStyle = "red";
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      offScreen() {
+        return this.x < -50 || this.x > WIDTH + 50 || this.y < -50 || this.y > HEIGHT + 50;
+      }
+    }
+
+    const bullets = [];
+    let lastSpawn = 0;
+
+    function spawnBullets() {
+      const now = performance.now();
+      if (now - lastSpawn > 800) {
+        lastSpawn = now;
+        const edges = ["top", "bottom", "left", "right"];
+        const edge = edges[Math.floor(Math.random() * edges.length)];
+        let x, y;
+        if (edge === "top") {
+          x = Math.random() * WIDTH;
+          y = 0;
+        } else if (edge === "bottom") {
+          x = Math.random() * WIDTH;
+          y = HEIGHT;
+        } else if (edge === "left") {
+          x = 0;
+          y = Math.random() * HEIGHT;
+        } else {
+          x = WIDTH;
+          y = Math.random() * HEIGHT;
+        }
+        bullets.push(new Bullet(x, y, player.x - x, player.y - y));
+      }
+    }
+
+    function updateGame() {
+      updatePlayer();
+      spawnBullets();
+      bullets.forEach(b => b.update());
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      ctx.beginPath();
+      ctx.fillStyle = "blue";
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      bullets.forEach(b => b.draw());
+    }
+
+    function gameLoop() {
+      updateGame();
+      drawGame();
+      requestAnimationFrame(gameLoop);
+    }
+
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
