@@ -23,6 +23,11 @@ const btnHC=document.getElementById('btn-hc');
 const btnReturn=document.getElementById('btn-return');
 const finalScoreEl=document.getElementById('final-score');
 const bestScoreEl=document.getElementById('best-score');
+const titleEl = document.getElementById('title');
+// ----- Title visibility helpers -----
+function showTitle(){ if (titleEl) titleEl.style.display = 'block'; }
+function hideTitle(){ if (titleEl) titleEl.style.display = 'none'; }
+  
 
 const keys={up:false,down:false,left:false,right:false};
 window.addEventListener('keydown',e=>{
@@ -338,7 +343,7 @@ function startGame(diff){
   game.player=new Player(CONFIG.canvas.w/2,CONFIG.canvas.h/2,CONFIG.player.r,speed);
   game.bullets.length=0;game.curveLasers.length=0;
   game.hp=(diff===Diff.EASY)?3:1;
-  hideMenu();hideGO();
+  hideMenu();hideGO();hideTitle();
   if(diff===Diff.HC){game.nextCurveTimer=0;game.curvePreTimer=0;}
   else{scheduleNextCurve();scheduleNextBullet();}
   running=true;lastTime=performance.now();requestAnimationFrame(loop);
@@ -354,15 +359,26 @@ function endGame(){
 function returnToMenu(){game.mode=Mode.MENU;running=false;showMenu();hideGO();}
 
 /* UI */
-function showMenu(){uiMenu.classList.remove('hidden');}
-function hideMenu(){uiMenu.classList.add('hidden');}
-function showGO(){
-  finalScoreEl.textContent=`Score: ${game.score.toFixed(1)}s`;
-  const best=(game.diff===Diff.EASY)?game.best.easy:(game.diff===Diff.HARD?game.best.hard:game.best.hc);
-  bestScoreEl.textContent=`Best: ${best.toFixed(1)}s`;
-  uiGO.classList.remove('hidden');
+function showMenu(){
+  uiMenu.classList.remove('hidden');
+  showTitle();              // 메뉴 화면 = 제목 표시
 }
-function hideGO(){uiGO.classList.add('hidden');}
+function hideMenu(){
+  uiMenu.classList.add('hidden');
+  // 제목 숨김은 startGame()에서 처리
+}
+
+function showGO(){
+  finalScoreEl.textContent = `Score: ${game.score.toFixed(1)}s`;
+  const best = (game.diff===Diff.EASY)?game.best.easy:(game.diff===Diff.HARD?game.best.hard:game.best.hc);
+  bestScoreEl.textContent  = `Best: ${best.toFixed(1)}s`;
+  uiGO.classList.remove('hidden');
+  showTitle();              // 게임 오버 화면 = 제목 표시
+}
+function hideGO(){
+  uiGO.classList.add('hidden');
+}
+
 
 /* HUD */
 function drawHUD(){
