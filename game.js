@@ -3,6 +3,7 @@
 
 const CONFIG = {
   canvas:{w:800,h:600},
+  grid: { unit: 50 },
   player:{r:5,speedEasy:300,speedHard:360,speedHC:360},
   bullets:{r:4,startRateEasy:2,maxRateEasy:5,startRateHard:4,maxRateHard:10,spreadEasyDeg:7,spreadHardDeg:15,speedEasy:240,speedHard:300},
   curves:{preEasy:2.5,preHard:1.25,preHC:0.35,activeEasy:1.0,activeHard:1.25,activeHC:0.6,intervalEasy:5,intervalHard:3},
@@ -429,12 +430,64 @@ function render(){
   drawHUD();
 }
 function drawGrid(){
-  ctx.strokeStyle='rgba(255,255,255,0.05)';
-  ctx.lineWidth=1;
-  const W=CONFIG.canvas.w,H=CONFIG.canvas.h,sp=50;
-  for(let x=0;x<=W;x+=sp){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(let y=0;y<=H;y+=sp){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const W = CONFIG.canvas.w;
+  const H = CONFIG.canvas.h;
+  const unit = (CONFIG.grid && CONFIG.grid.unit) ? CONFIG.grid.unit : 50;
+  const cx = W/2;
+  const cy = H/2;
+
+  // ----- minor grid -----
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let x=0; x<=W; x+=unit){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+  }
+  for (let y=0; y<=H; y+=unit){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+
+  // ----- axes -----
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 2;
+  // x-axis (y=0 math => cy canvas)
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  // y-axis (x=0 math => cx canvas)
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+
+  // ----- ticks + labels -----
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillStyle   = '#ccc';
+  ctx.font = '12px monospace';
+
+  // x ticks (skip 0)
+  ctx.textAlign = 'center';
+  const maxUnitsX = Math.floor(W/(2*unit));
+  for (let i=-maxUnitsX; i<=maxUnitsX; i++){
+    if (i===0) continue;
+    const x = cx + i*unit;
+    // tick
+    ctx.beginPath(); ctx.moveTo(x,cy-4); ctx.lineTo(x,cy+4); ctx.stroke();
+    // label
+    ctx.fillText(i.toString(), x, cy+14);
+  }
+
+  // y ticks (skip 0)
+  ctx.textAlign = 'right';
+  const maxUnitsY = Math.floor(H/(2*unit));
+  for (let j=-maxUnitsY; j<=maxUnitsY; j++){
+    if (j===0) continue;
+    // math +y up -> canvas y = cy - j*unit
+    const y = cy - j*unit;
+    ctx.beginPath(); ctx.moveTo(cx-4,y); ctx.lineTo(cx+4,y); ctx.stroke();
+    ctx.fillText(j.toString(), cx-6, y+4);
+  }
+
+  // origin label
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('0', cx+4, cy-4);
 }
+
 
 /* init */
 showMenu();hideGO();
